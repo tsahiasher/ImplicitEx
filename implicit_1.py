@@ -47,7 +47,7 @@ Build and train Siren network with co-ordinates+idx as input
 input = siren.ImageFittingIdx(imagesData, mean, std, 48)
 dataloader = DataLoader(input, batch_size=100, pin_memory=True, num_workers=0)
 
-img_siren = siren.Siren(in_features=3, out_features=4, hidden_features=512, 
+img_siren = siren.Siren(in_features=102, out_features=4, hidden_features=512,
                   hidden_layers=4, outermost_linear=True)
 img_siren.to(device)
 train_losses = siren.train(img_siren, dataloader, 500, device)
@@ -64,7 +64,9 @@ torch.save(img_siren.state_dict(), './img_siren_A.pt')
 fig, axes = plt.subplots(10,10, figsize=(18,18))
 for i in range(10):
     for j in range(10):
-        normalized_img = img_siren(torch.cat([siren.get_mgrid(48, 2), torch.full((2304, 1), i*10+j)], dim=1).to(device))[0].view(48, 48, 4).cpu().detach().numpy()
+        vecIdx = torch.zeros((48**2, 100))
+        vecIdx[:, i*10+j] = 1
+        normalized_img = img_siren(torch.cat([siren.get_mgrid(48, 2), vecIdx], dim=1).to(device))[0].view(48, 48, 4).cpu().detach().numpy()
         img = 255*(normalized_img * std + mean)
         img = np.clip(img, 0,255).astype(np.int32) 
         axes[i,j].imshow(img)
