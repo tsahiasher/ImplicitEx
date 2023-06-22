@@ -16,7 +16,9 @@ if torch.cuda.is_available():
     device = torch.device("cuda")
 else:
     device = torch.device("cpu")
-image_resolution = 48
+
+image_resolution = 48 #256
+batch_size = 100 #32
 linear_size = image_resolution//4
 
 
@@ -77,7 +79,7 @@ transform = Compose([
 ])
 
 imageDataSet = ImageDataset(imagesData, transform)
-dataloader = DataLoader(imageDataSet, batch_size=32, pin_memory=True, num_workers=0, shuffle=False)
+dataloader = DataLoader(imageDataSet, batch_size=batch_size, pin_memory=True, num_workers=0, shuffle=False)
 
 
 def show_image(im):
@@ -124,7 +126,7 @@ def train():
     return model
 
 
-model_name = './implicit_2b_256.pt'
+model_name = f'./implicit_2b_{image_resolution}.pt'
 if exists(model_name):
     loaded_state_dict = torch.load(model_name)
     model = Autoencoder().to(device)
