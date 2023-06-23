@@ -17,9 +17,10 @@ if torch.cuda.is_available():
 else:
     device = torch.device("cpu")
 
-image_resolution = 48 #256
-batch_size = 100 #32
-linear_size = image_resolution//4
+image_resolution = 256 #256
+batch_size = 32 #32
+linear_size = 48//4
+latent_size = 256
 
 
 class Autoencoder(nn.Module):
@@ -35,14 +36,13 @@ class Autoencoder(nn.Module):
             nn.LeakyReLU(True),
             nn.MaxPool2d(kernel_size=2, stride=2),
             nn.Flatten(),
-            nn.Linear(8 * linear_size * linear_size, 256),
+            nn.Linear(8 * linear_size * linear_size, latent_size),
             nn.LeakyReLU(True),
-            nn.Dropout(0.2)
         )
 
         # Decoder layers
         self.decoder = nn.Sequential(
-            nn.Linear(256, 8 * linear_size * linear_size),
+            nn.Linear(latent_size, 8 * linear_size * linear_size),
             nn.LeakyReLU(True),
             nn.Unflatten(1, (8, linear_size, linear_size)),
             nn.ConvTranspose2d(8, 16, kernel_size=2, stride=2),
@@ -95,7 +95,7 @@ def train():
 
     epocs = 4000
     steps_til_summary = int(epocs/ 5)
-    loss_function = nn.MSELoss()
+    loss_function = nn.L1Loss()
     optim = torch.optim.Adam(model.parameters(), lr = 0.01, weight_decay=1e-8)
 
     for step in tqdm(range(epocs)):
@@ -127,7 +127,7 @@ def train():
 
 
 model_name = f'./implicit_2b_{image_resolution}.pt'
-if exists(model_name):
+if exists(model_name) and False:
     loaded_state_dict = torch.load(model_name)
     model = Autoencoder().to(device)
     model.load_state_dict(loaded_state_dict)
